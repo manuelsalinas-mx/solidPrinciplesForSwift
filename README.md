@@ -195,6 +195,37 @@ class Truck: Scrappable {
 
 
 ### Liskov substitution principle
+This principle states that any class should be able to be overridden by one of its subclasses without affecting its performance.
+
+For example, suppose we have a class, `UserService`, which has the responsibility of contacting users (_for example, sending a mail_). If the business logic changes and, for example, mails can only be sent to users over 17 years old, we can create a subclass that adds the new business logic:
+
+```
+class UserService {
+    func contact(user: User) {
+        // Retrieve user from database
+    }
+}
+
+class ValidUserService: Handler {
+    override func contact(user: User) {
+        guard user.age > 17 else { return }
+
+        super.contact(user: User)
+    }
+}
+```
+In this case, the Liskov Substitution Principle is not fulfilled, since the subclass adds a condition (_that the user's age is greater than 17 years_), which a client of the `UserService` class would not expect. We can work around this problem by not creating the subclass, and adding to `UserService` the precondition (including a default value):
+```
+class UserService {
+    func contact(user: User, minAge: Int = 0) {
+        guard user.age > minAge else { return }
+        // Retrieve user from database
+    }
+}
+```
+
+
+
 ### Interface segregation principle
 ### Dependency inversion principle
 
@@ -396,6 +427,37 @@ class Truck: Scrappable {
 
 
 ### Principio de sustitución de Liskov
+Este principio establece que cualquier clase debería poder ser reemplazado por una de sus subclases sin que se vea afectado su funcionamiento.
+
+Por ejemplo, supongamos que tenemos una clase, `UserService`, que tiene la responsabilidad de contactar con los usuarios (_por ejemplo, enviar un mail_). Si cambia la lógica de negocio y, por ejemplo, solo se pueden enviar mails a usuarios de más de 17 años, podemos crear una subclase que añada la nueva lógica de negocio:
+
+```
+class UserService {
+    func contact(user: User) {
+        // Retrieve user from database
+    }
+}
+
+class ValidUserService: Handler {
+    override func contact(user: User) {
+        guard user.age > 17 else { return }
+
+        super.contact(user: User)
+    }
+}
+```
+En este caso no se cumple el Principio de sustitución de Liskov, ya que la subclase añade una condición (_que la edad del usuario sea mayor de 17 años_), que no esperaría un cliente de la clase `UserService`. Podemos solucionar este problema no creando la subclase, y añadiendo a `UserService` la precondición (incluyendo un valor por defecto):
+```
+class UserService {
+    func contact(user: User, minAge: Int = 0) {
+        guard user.age > minAge else { return }
+        // Retrieve user from database
+    }
+}
+```
+
+
+
 ### Principio de segregación de la interfaz
 ### Principio de inversión de la dependencia
 
