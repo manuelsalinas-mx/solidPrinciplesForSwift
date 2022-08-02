@@ -214,6 +214,7 @@ class ValidUserService: Handler {
     }
 }
 ```
+
 In this case, the Liskov Substitution Principle is not fulfilled, since the subclass adds a condition (_that the user's age is greater than 17 years_), which a client of the `UserService` class would not expect. We can work around this problem by not creating the subclass, and adding to `UserService` the precondition (including a default value):
 ```
 class UserService {
@@ -227,7 +228,124 @@ class UserService {
 
 
 ### Interface segregation principle
+The Interface Segregation Principle states that it is better to have different interfaces (protocols) that are specific to each client than a general interface. Also, it indicates that a client should not have to implement methods that it doesn't use.
+
+For example, we can create an interface for animals that includes scroll methods:
+```
+protocol AnimalProtocol {
+    func walk()
+    func swimm()
+    func fly()
+}
+
+struct Animal: AnimalProtocol {
+    func walk() {}
+    func swimm() {}
+    func fly() {}
+}
+
+struct Wale: AnimalProtocol {
+    func swimm() {
+        // Walw only needs to implement this function
+        // All the other functions are irrelavant
+    }
+    
+    func walk() {}
+    
+    func fly() {}
+}
+```
+
+However, although **Wale** adopts the protocol, there are two methods that it does not implement. The solution is to set 3 interfaces (protocols), one per method:
+```
+protocol WalkProtocol {
+    func walk()
+}
+
+protocol SwimmProtocol {
+    func swimm()
+}
+
+protocol FlyProtocol {
+    func fly()
+}
+
+struct Wale: SwimmProtocol {
+    func swimm() {}
+}
+
+struct Crocodile: WalkProtocol, SwimmProtocol {
+    func walk()
+    func swimm() {}
+}
+```
+
+
+
 ### Dependency inversion principle
+According to the Dependency Inversion Principle:
+- High level classes shouldn't depend on low level classes. Both should depend on abstractions.
+- Abstractions shouldn't depend on details. The details should depend on the abstractions.
+
+The idea is to reduce dependencies between modules, and thus achieve less coupling between classes.
+
+Let's look at the following example:
+```
+class User {
+    var name: String
+    
+    init(name: String) {
+        self.name = name
+    }
+}
+
+class CoreData {
+    func save(user: User) {
+        // Save user on database
+    }
+}
+
+class UserService {
+    func save(user: User) {
+        let database = CoreData()
+        database.save(user: user)
+    }
+}
+```
+
+What if instead of using **CoreData** to store the data, we want to use the **Realm** database? The fact of instantiating the class as we have done in the example generates a strong coupling, so if we want to use another database, we would have to redo the code.
+
+To fix this, we can do what was explained in a previous article, when a database layer was set up.
+``` 
+protocol Storable { }
+
+extension Object: Storable { } // Realm Database
+
+extension NSManagedObject: Storable { } // Core Data Database
+
+protocol StorageManager {
+  /// Save Object into Realm database
+  /// - Parameter object: Realm object (as Storable)
+  func save(object: Storable)
+}
+```
+
+Now we make the **User** adopt the `Storable` protocol and the **UserService** class adopt the `StorageManager` protocol, so that even if we change the database, we don't need to change all the implementation code:
+```
+class User: Storable {
+    var name: String
+    
+    init(name: String) {
+        self.name = name
+    }
+}
+
+class UserService: StorageManager {
+    func save(object: Storable) {
+        // Saves user to database
+    }
+}
+```
 
 
 
@@ -446,6 +564,7 @@ class ValidUserService: Handler {
     }
 }
 ```
+
 En este caso no se cumple el Principio de sustitución de Liskov, ya que la subclase añade una condición (_que la edad del usuario sea mayor de 17 años_), que no esperaría un cliente de la clase `UserService`. Podemos solucionar este problema no creando la subclase, y añadiendo a `UserService` la precondición (incluyendo un valor por defecto):
 ```
 class UserService {
@@ -459,9 +578,123 @@ class UserService {
 
 
 ### Principio de segregación de la interfaz
+El Principio de segregación de la interfaz indica que es mejor tener diferentes interfaces (protocolos) que sean específicos para cada cliente, que tener un interfaz general. Además, indica que un cliente no tendría que implementar métodos que no utilice.
+
+Por ejemplo, podemos crear una interfaz para animales que incluya métodos de desplazamiento:
+```
+protocol AnimalProtocol {
+    func walk()
+    func swimm()
+    func fly()
+}
+
+struct Animal: AnimalProtocol {
+    func walk() {}
+    func swimm() {}
+    func fly() {}
+}
+
+struct Wale: AnimalProtocol {
+    func swimm() {
+        // Walw only needs to implement this function
+        // All the other functions are irrelavant
+    }
+    
+    func walk() {}
+    
+    func fly() {}
+}
+```
+
+Sin embargo, aunque **Wale** adopta el protocolo, hay dos métodos que no implementa. La solución es establecer 3 interfaces (protocolos), una por método:
+```
+protocol WalkProtocol {
+    func walk()
+}
+
+protocol SwimmProtocol {
+    func swimm()
+}
+
+protocol FlyProtocol {
+    func fly()
+}
+
+struct Wale: SwimmProtocol {
+    func swimm() {}
+}
+
+struct Crocodile: WalkProtocol, SwimmProtocol {
+    func walk()
+    func swimm() {}
+}
+```
+
+
+
 ### Principio de inversión de la dependencia
+Según el Principio de inversión de la dependencia:
+- Las clases de alto nivel no deberían depender de la clases de bajo nivel. Ambas deberían depender de abstracciones.
+- Las abstracciones no deberían depender de los detalles. Los detalles deberían depender de las abstracciones.
 
+Lo que se busca es reducir las dependencias entre módulos, y así alcanzar un menor acoplamiento entre clases.
 
+Observemos el siguiente ejemplo:
+```
+class User {
+    var name: String
+    
+    init(name: String) {
+        self.name = name
+    }
+}
 
+class CoreData {
+    func save(user: User) {
+        // Save user on database
+    }
+}
+
+class UserService {
+    func save(user: User) {
+        let database = CoreData()
+        database.save(user: user)
+    }
+}
+```
+
+¿Qué ocurre si en vez de utilizar **CoreData** para guardar los datos, queremos utilizar la base de datos **Realm**? El hecho de instanciar la clase como hemos hecho en el ejemplo genera un fuerte acoplamiento, por lo que si queremos utilizar otra base de datos, habría que rehacer el código.
+
+Para solucionar esto, podemos hacer lo que se explicó en un artículo anterior, cuando se estableció una capa de base de datos.
+``` 
+protocol Storable { }
+
+extension Object: Storable { } // Realm Database
+
+extension NSManagedObject: Storable { } // Core Data Database
+
+protocol StorageManager {
+  /// Save Object into Realm database
+  /// - Parameter object: Realm object (as Storable)
+  func save(object: Storable)
+}
+```
+
+Ahora hacemos que **User** adopte el protocolo `Storable` y que la clase **UserService** adopte el protocolo `StorageManager`, de forma que aunque cambiemos la base de datos, no necesitaremos cambiar todo el código de implementación:
+```
+class User: Storable {
+    var name: String
+    
+    init(name: String) {
+        self.name = name
+    }
+}
+
+class UserService: StorageManager {
+    func save(object: Storable) {
+        // Saves user to database
+    }
+}
+```
 
 
