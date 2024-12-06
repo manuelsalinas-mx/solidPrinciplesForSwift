@@ -1,6 +1,11 @@
 # SOLID Principles for Swift
 ![1*OzwARbvHUg1RlZ7LYyLCrg](https://user-images.githubusercontent.com/110424672/182413972-a3cb4fb2-e32e-4f83-9073-76e74398d294.png)
 
+## Content: 
+- [English](#english)
+- [Español](#spanish)
+
+--- 
 ## ENGLISH
 
 **Advantages of applying these 5 principles:**
@@ -351,7 +356,7 @@ class UserService: StorageManager {
 
 
 ---
-## ESPAÑOL
+## SPANISH
 
 **Ventajas de aplicar estos 5 principios:**
 - Tendremos un código flexible, que podremos cambiar fácilmente y que sera tanto reusable como mantenible.
